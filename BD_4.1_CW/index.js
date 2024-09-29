@@ -15,7 +15,7 @@ let db;
 // Initialize SQLite database connection
 (async () => {
   db = await open({
-    filename: "./BD_4.1_CW/database.sqlite",
+    filename: "./Backend/database.sqlite",
     driver: sqlite3.Database,
   });
   console.log("Database connected.");
@@ -108,6 +108,51 @@ app.get("/movies/release-year/:year", async (req, res)=>{
  }
 
  res.status(200).json(results);
+ } catch(error){
+   res.status(500).json({ error: error.message });
+ }
+});
+
+// functio to fetch all movies by actor
+async function filterByActor(actor){
+  let query = "SELECT * FROM movies WHERE actor = ?";
+  let response = await db.all(query, [actor]);
+  return { movies: response };
+}
+
+// Route to fetch all movies by actor
+app.get("/movies/actor/:actor", async (req, res)=>{
+ try{
+ let actor = req.params.actor;
+ const results = await filterByActor(actor);
+
+ if(results.movies.length === 0){
+   res.status(404).json({ message: "No movies found for actor: " +  actor});
+ }
+ return res.status(200).json(results);
+ } catch(error){
+   res.status(500).json({ error: error.message });
+ }
+});
+
+// function to fetch movies by director
+async function fetchByDirector(director){
+  let query = "SELECT * FROM movies WHERE director = ?";
+  let response = await db.all(query, [director]);
+  return { movies: response };
+}
+
+// Route to fetch movies by director
+app.get("/movies/director/:director", async (req, res)=>{
+ try{
+   let director = req.params.director;
+   let results = await fetchByDirector(director);
+
+   if(results.movies.length === 0){
+     res.status(404).json({ message: "No movies found for the director: "  + director });
+   }
+   
+   res.status(200).json(results);
  } catch(error){
    res.status(500).json({ error: error.message });
  }
